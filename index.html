@@ -7,11 +7,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* ==========================================================================
+   CSS Variables (Root)
+   ========================================================================== */
         :root {
             --primary-color: #1890ff;
             --secondary-color: #52c41a;
             --danger-color: #ff4d4f;
-            --warning-color: #faad14; /* 用于揭示答案 */
+            --warning-color: #faad14;
             --light-bg: #f0f9ff;
             --dark-text: #1a1a1a;
             --light-text: #ffffff;
@@ -20,18 +23,22 @@
             --transition: all 0.3s ease;
         }
 
+        /* ==========================================================================
+   Base & Layout
+   ========================================================================== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
         }
 
         body {
+            font-family: 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: var(--dark-text);
-            padding: 15px;
+            padding: 10px; /* Reduced padding for mobile */
+            line-height: 1.6;
         }
 
         .container {
@@ -39,37 +46,40 @@
             margin: 0 auto;
         }
 
+        /* ==========================================================================
+   Components
+   ========================================================================== */
         .header {
             text-align: center;
-            padding: 25px 15px;
+            padding: 20px 15px;
             background: rgba(255, 255, 255, 0.9);
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         h1 {
             color: var(--primary-color);
-            font-size: 2.8rem;
+            font-size: 2.5rem; /* Slightly smaller for mobile */
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .game-instructions {
             background: rgba(255, 255, 255, 0.85);
-            padding: 20px;
+            padding: 15px;
             border-radius: var(--border-radius);
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             box-shadow: var(--box-shadow);
         }
 
         .game-instructions h2 {
             color: var(--primary-color);
-            margin-bottom: 15px;
-            font-size: 1.5rem;
+            margin-bottom: 10px;
+            font-size: 1.2rem; /* Smaller for mobile */
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .game-instructions ul {
@@ -77,28 +87,28 @@
         }
 
         .game-instructions li {
-            margin-bottom: 10px;
-            line-height: 1.6;
+            margin-bottom: 8px;
+            font-size: 0.9rem; /* Smaller for mobile */
         }
-        
+
         .control-panel {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             align-items: center;
-            gap: 20px;
-            padding: 20px;
+            gap: 15px; /* Reduced gap */
+            padding: 15px; /* Reduced padding */
             background: rgba(255, 255, 255, 0.9);
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .control-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 1.2rem;
+            gap: 8px;
+            font-size: 1rem; /* Smaller font */
             font-weight: bold;
         }
 
@@ -115,15 +125,9 @@
             animation: pulse 0.5s;
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-
         #controlBtn {
-            padding: 15px 40px;
-            font-size: 1.5rem;
+            padding: 12px 30px; /* Slightly smaller */
+            font-size: 1.2rem; /* Slightly smaller */
             background: var(--danger-color);
             color: white;
             border-radius: var(--border-radius);
@@ -139,70 +143,56 @@
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
         }
 
+        #controlBtn:active {
+            transform: translateY(0);
+        }
+
         #controlBtn:disabled {
             background: #d9d9d9;
             cursor: not-allowed;
             transform: none;
         }
 
-        .mode-selector {
+        .mode-selector, .file-input-label {
             padding: 10px 20px;
             font-size: 1rem;
-            border-radius: var(--border-radius);
-            border: 2px solid var(--primary-color);
-            background: white;
-            color: var(--dark-text);
-            cursor: pointer;
-        }
-
-        .file-upload-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            justify-content: center;
-        }
-
-        .file-input-wrapper {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-        }
-
-        .file-input-wrapper input[type=file] {
-            position: absolute;
-            left: -9999px;
-        }
-
-        .file-input-label {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 24px;
-            background: var(--primary-color);
-            color: white;
             border-radius: var(--border-radius);
             cursor: pointer;
             transition: var(--transition);
             font-weight: bold;
             box-shadow: var(--box-shadow);
+            border: 2px solid var(--primary-color);
+            background: white;
+            color: var(--dark-text);
+        }
+        
+        .file-input-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--primary-color);
+            color: white;
         }
 
-        .file-input-label:hover {
-            background: #096dd9;
+        .mode-selector:hover, .file-input-label:hover {
             transform: translateY(-2px);
+        }
+        
+        .mode-selector:active, .file-input-label:active {
+            transform: translateY(0);
         }
 
         .prompt-container {
             text-align: center;
-            margin: 20px 0;
+            margin: 15px 0;
             background: rgba(255, 255, 255, 0.9);
-            padding: 25px;
+            padding: 20px;
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
         }
 
         .chinese-prompt {
-            font-size: 2rem;
+            font-size: 1.5rem; /* Smaller for mobile */
             color: #333;
             font-weight: bold;
         }
@@ -211,8 +201,8 @@
             background: var(--light-bg);
             border: 3px solid var(--primary-color);
             border-radius: var(--border-radius);
-            padding: 20px;
-            min-height: 400px;
+            padding: 15px; /* Reduced padding */
+            min-height: 350px; /* Slightly smaller */
             position: relative;
             box-shadow: var(--box-shadow);
         }
@@ -220,7 +210,7 @@
         .words-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 10px; /* Reduced gap */
             justify-content: center;
         }
 
@@ -228,19 +218,25 @@
             background: white;
             border: 2px solid var(--primary-color);
             border-radius: 25px;
-            padding: 12px 24px;
+            padding: 15px 25px; /* Larger for touch */
             font-size: 1.1rem;
             cursor: pointer;
             transition: var(--transition);
             box-shadow: var(--box-shadow);
             font-weight: bold;
             position: relative;
+            min-width: 100px; /* Ensure minimum touch target size */
+            text-align: center;
         }
 
         .word-btn:hover:not(:disabled) {
             background: var(--primary-color);
             color: white;
             transform: translateY(-3px) scale(1.05);
+        }
+
+        .word-btn:active:not(:disabled) {
+            transform: translateY(-1px) scale(1.02);
         }
 
         .word-btn.correct {
@@ -268,12 +264,6 @@
             animation: glow 1.5s ease-in-out;
         }
 
-        @keyframes glow {
-            0% { box-shadow: 0 0 5px var(--warning-color); }
-            50% { box-shadow: 0 0 20px var(--warning-color), 0 0 30px var(--warning-color); }
-            100% { box-shadow: 0 0 5px var(--warning-color); }
-        }
-
         .notification {
             position: fixed;
             top: 20px;
@@ -285,7 +275,7 @@
             transform: translateX(150%);
             transition: transform 0.3s ease;
             z-index: 1000;
-            max-width: 300px;
+            max-width: 80%; /* Responsive width */
             font-weight: bold;
         }
 
@@ -298,33 +288,63 @@
         .notification.info { border-left: 5px solid var(--primary-color); color: var(--primary-color); }
         .notification.combo { border-left: 5px solid var(--warning-color); color: var(--warning-color); }
 
+        /* ==========================================================================
+   Animations
+   ========================================================================== */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); } /* Reduced scale for subtlety */
+            100% { transform: scale(1); }
+        }
+
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
             20%, 40%, 60%, 80% { transform: translateX(5px); }
         }
 
-        @media (max-width: 768px) {
-            h1 { font-size: 2.2rem; }
-            .chinese-prompt { font-size: 1.5rem; }
-            .word-btn { font-size: 1rem; padding: 10px 18px; }
-            .control-panel { gap: 15px; padding: 15px; }
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px var(--warning-color); }
+            50% { box-shadow: 0 0 20px var(--warning-color), 0 0 30px var(--warning-color); }
+            100% { box-shadow: 0 0 5px var(--warning-color); }
+        }
+
+        /* ==========================================================================
+   Media Queries (Responsive Design)
+   ========================================================================== */
+        @media (min-width: 768px) {
+            body { padding: 15px; }
+            h1 { font-size: 2.8rem; }
+            .game-instructions h2 { font-size: 1.5rem; }
+            .game-instructions li { font-size: 1rem; }
+            .control-panel { gap: 20px; padding: 20px; }
+            .control-item { font-size: 1.2rem; }
+            #controlBtn { font-size: 1.5rem; padding: 15px 40px; }
+            .chinese-prompt { font-size: 2rem; }
+            .game-area { padding: 20px; min-height: 400px; }
+            .word-btn { font-size: 1.1rem; padding: 12px 24px; }
+            .notification { max-width: 300px; }
+        }
+
+        @media (min-width: 1200px) {
+            h1 { font-size: 3.5rem; }
+            .chinese-prompt { font-size: 2.5rem; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1><i class="fas fa-gamepad"></i> 英语单词大作战 - 挑战版</h1>
+            <h1><i class="fas fa-gamepad"></i> 英语单词大作战</h1>
         </div>
 
         <div class="game-instructions">
             <h2><i class="fas fa-info-circle"></i> 游戏说明</h2>
             <ul>
-                <li>上传Excel格式的单词表，要求：<strong>第一列为日期，第二列为英文单词，第三列为中文释义</strong>，程序将从第二行开始读取。</li>
-                <li><strong>选择游戏模式</strong>，不同模式有不同的规则和挑战。</li>
-                <li><strong>连击系统</strong>：连续答对可获得额外加分，中断后重新计算。</li>
-                <li>根据显示的中文释义，点击对应的英文单词。</li>
+                <li>上传Excel，格式：<strong>日期, 单词, 释义</strong>，从第二行读取。</li>
+                <li>选择模式，享受挑战。</li>
+                <li>连击可获得额外加分。</li>
+                <li>根据释义，点击单词。</li>
             </ul>
         </div>
 
@@ -359,7 +379,7 @@
             </select>
         </div>
 
-        <div class="file-upload-container">
+        <div class="control-panel">
             <div class="file-input-wrapper">
                 <input type="file" id="excelFile" accept=".xlsx, .xls" onchange="loadExcelFile(this.files[0])">
                 <label for="excelFile" class="file-input-label">
@@ -640,15 +660,13 @@
                 if (shouldEndRound) {
                     isRoundActive = false;
                     setTimeout(() => {
-                        // 找到正确的答案按钮并高亮
                         const correctBtn = [...document.querySelectorAll('.word-btn')].find(b => b.dataset.chinese === currentPrompt);
                         if (correctBtn) {
                             correctBtn.classList.add('revealed-answer');
                             correctBtn.disabled = true;
                         }
                         currentWordData.used = true;
-
-                        // **关键修改：移除错误按钮的红色标记**
+                        
                         btn.classList.remove('wrong');
                         
                         setTimeout(() => {
@@ -658,7 +676,6 @@
                         setTimeout(startRound, 2500);
                     }, 500);
                 } else {
-                    // 还有一次机会，移除错误效果
                     setTimeout(() => btn.classList.remove('wrong'), 500);
                 }
             }

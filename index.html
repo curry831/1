@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英语单词大作战 - 挑战版</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1890ff;
+            --secondary-color: #52c41a;
+            --danger-color: #ff4d4f;
+            --warning-color: #faad14; /* 用于揭示答案 */
+            --light-bg: #f0f9ff;
+            --dark-text: #1a1a1a;
+            --light-text: #ffffff;
+            --border-radius: 15px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark-text);
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            padding: 25px 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-instructions {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
+            box-shadow: var(--box-shadow);
+        }
+
+        .game-instructions h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .game-instructions ul {
+            padding-left: 20px;
+        }
+
+        .game-instructions li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .control-panel {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 25px;
+        }
+
+        .control-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        #timer, #lives-display {
+            color: var(--danger-color);
+        }
+
+        #score-display {
+            color: var(--secondary-color);
+        }
+
+        #combo-display {
+            color: var(--warning-color);
+            animation: pulse 0.5s;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        #controlBtn {
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            background: var(--danger-color);
+            color: white;
+            border-radius: var(--border-radius);
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--box-shadow);
+            font-weight: bold;
+        }
+
+        #controlBtn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        #controlBtn:disabled {
+            background: #d9d9d9;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .mode-selector {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: var(--border-radius);
+            border: 2px solid var(--primary-color);
+            background: white;
+            color: var(--dark-text);
+            cursor: pointer;
+        }
+
+        .file-upload-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: bold;
+            box-shadow: var(--box-shadow);
+        }
+
+        .file-input-label:hover {
+            background: #096dd9;
+            transform: translateY(-2px);
+        }
+
+        .prompt-container {
+            text-align: center;
+            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .chinese-prompt {
+            font-size: 2rem;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .game-area {
+            background: var(--light-bg);
+            border: 3px solid var(--primary-color);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            min-height: 400px;
+            position: relative;
+            box-shadow: var(--box-shadow);
+        }
+
+        .words-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .word-btn {
+            background: white;
+            border: 2px solid var(--primary-color);
+            border-radius: 25px;
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--box-shadow);
+            font-weight: bold;
+            position: relative;
+        }
+
+        .word-btn:hover:not(:disabled) {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-3px) scale(1.05);
+        }
+
+        .word-btn.correct {
+            background: var(--secondary-color) !important;
+            border-color: var(--secondary-color);
+            color: white;
+            transform: scale(0.9);
+            pointer-events: none;
+        }
+
+        .word-btn.wrong {
+            background: var(--danger-color) !important;
+            border-color: var(--danger-color);
+            color: white;
+            animation: shake 0.5s;
+        }
+
+        .word-btn.revealed-answer {
+            background: var(--warning-color) !important;
+            border-color: var(--warning-color);
+            color: white;
+            opacity: 0.9;
+            cursor: not-allowed;
+            pointer-events: none;
+            animation: glow 1.5s ease-in-out;
+        }
+
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px var(--warning-color); }
+            50% { box-shadow: 0 0 20px var(--warning-color), 0 0 30px var(--warning-color); }
+            100% { box-shadow: 0 0 5px var(--warning-color); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            max-width: 300px;
+            font-weight: bold;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success { border-left: 5px solid var(--secondary-color); color: var(--secondary-color); }
+        .notification.error { border-left: 5px solid var(--danger-color); color: var(--danger-color); }
+        .notification.info { border-left: 5px solid var(--primary-color); color: var(--primary-color); }
+        .notification.combo { border-left: 5px solid var(--warning-color); color: var(--warning-color); }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.2rem; }
+            .chinese-prompt { font-size: 1.5rem; }
+            .word-btn { font-size: 1rem; padding: 10px 18px; }
+            .control-panel { gap: 15px; padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-gamepad"></i> 英语单词大作战 - 挑战版</h1>
+        </div>
+
+        <div class="game-instructions">
+            <h2><i class="fas fa-info-circle"></i> 游戏说明</h2>
+            <ul>
+                <li>上传Excel格式的单词表，要求：<strong>第一列为日期，第二列为英文单词，第三列为中文释义</strong>，程序将从第二行开始读取。</li>
+                <li><strong>选择游戏模式</strong>，不同模式有不同的规则和挑战。</li>
+                <li><strong>连击系统</strong>：连续答对可获得额外加分，中断后重新计算。</li>
+                <li>根据显示的中文释义，点击对应的英文单词。</li>
+            </ul>
+        </div>
+
+        <div class="control-panel">
+            <div class="control-item">
+                <i class="fas fa-clock"></i>
+                <span id="timer">剩余时间：--:--</span>
+            </div>
+            <div class="control-item" id="lives-container" style="display: none;">
+                <i class="fas fa-heart"></i>
+                <span id="lives-display">生命值: 3</span>
+            </div>
+            <button id="controlBtn" onclick="toggleGame()">
+                <i class="fas fa-play"></i> 开始游戏
+            </button>
+            <div class="control-item">
+                <i class="fas fa-star"></i>
+                <span id="score-display">得分: 0</span>
+            </div>
+            <div class="control-item">
+                <i class="fas fa-fire"></i>
+                <span id="combo-display">连击: x0</span>
+            </div>
+        </div>
+        
+        <div class="control-panel">
+            <label for="gameModeSelect" style="font-weight: bold;">选择模式:</label>
+            <select id="gameModeSelect" class="mode-selector">
+                <option value="timed">计时闯关</option>
+                <option value="survival">生存挑战</option>
+                <option value="precision">精准模式</option>
+            </select>
+        </div>
+
+        <div class="file-upload-container">
+            <div class="file-input-wrapper">
+                <input type="file" id="excelFile" accept=".xlsx, .xls" onchange="loadExcelFile(this.files[0])">
+                <label for="excelFile" class="file-input-label">
+                    <i class="fas fa-file-excel"></i> 上传Excel文件
+                </label>
+            </div>
+        </div>
+
+        <div class="prompt-container">
+            <div class="chinese-prompt">请选择与释义匹配的单词：<span id="current-prompt">等待游戏开始...</span></div>
+        </div>
+
+        <div class="game-area">
+            <div class="words-container" id="game-area-words"></div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // --- 游戏核心状态 ---
+        let isPlaying = false;
+        let currentWords = [];
+        let currentPrompt = '';
+        let currentWordData = null;
+        let fileLoaded = false;
+        let isRoundActive = false;
+        let currentRoundAttempts = 0;
+
+        // --- 游戏变量 ---
+        let gameMode = 'timed'; // 'timed', 'survival', 'precision'
+        let score = 0;
+        let combo = 0;
+        let maxCombo = 0;
+        let lives = 3;
+        let timeLeft = 0;
+        let initialTimeLeft = 0;
+        let gameTimer;
+
+        // --- 常量配置 ---
+        const baseTime = 60;
+        const timePerWord = 5;
+        const maxTime = 600;
+        const maxLives = 3;
+
+        // --- DOM 元素 ---
+        const elements = {
+            timer: document.getElementById('timer'),
+            livesContainer: document.getElementById('lives-container'),
+            livesDisplay: document.getElementById('lives-display'),
+            scoreDisplay: document.getElementById('score-display'),
+            comboDisplay: document.getElementById('combo-display'),
+            controlBtn: document.getElementById('controlBtn'),
+            gameModeSelect: document.getElementById('gameModeSelect'),
+            currentPrompt: document.getElementById('current-prompt'),
+            gameAreaWords: document.getElementById('game-area-words'),
+            notification: document.getElementById('notification')
+        };
+
+        // --- 通用工具函数 ---
+        function showNotification(message, type = 'info') {
+            elements.notification.textContent = message;
+            elements.notification.className = `notification ${type}`;
+            elements.notification.classList.add('show');
+            setTimeout(() => elements.notification.classList.remove('show'), 3000);
+        }
+
+        function formatTime(totalSeconds) {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        function updateScoreDisplay(points) {
+            score += points;
+            elements.scoreDisplay.textContent = `得分: ${score}`;
+        }
+
+        function updateComboDisplay(isCorrect) {
+            if (isCorrect) {
+                combo++;
+                if (combo > maxCombo) maxCombo = combo;
+                if (combo > 1) {
+                    showNotification(`连击 x${combo}!`, 'combo');
+                }
+            } else {
+                combo = 0;
+            }
+            elements.comboDisplay.textContent = `连击: x${combo}`;
+            elements.comboDisplay.style.animation = 'none';
+            setTimeout(() => elements.comboDisplay.style.animation = 'pulse 0.5s', 10);
+        }
+
+        function updateLivesDisplay() {
+            elements.livesDisplay.innerHTML = `生命值: ${'❤️'.repeat(lives)}${'🖤'.repeat(maxLives - lives)}`;
+        }
+        
+        // --- 游戏控制函数 ---
+        function toggleGame() {
+            if (!isPlaying) {
+                if (!fileLoaded) {
+                    showNotification('请先上传单词表！', 'error');
+                    return;
+                }
+                startGame();
+            } else {
+                endGame();
+            }
+        }
+
+        function startGame() {
+            isPlaying = true;
+            score = 0;
+            combo = 0;
+            lives = maxLives;
+            isRoundActive = false;
+
+            gameMode = elements.gameModeSelect.value;
+            
+            if (gameMode === 'timed') {
+                timeLeft = initialTimeLeft;
+                elements.timer.style.display = 'flex';
+                elements.livesContainer.style.display = 'none';
+            } else {
+                elements.timer.style.display = 'none';
+                elements.livesContainer.style.display = 'flex';
+                updateLivesDisplay();
+            }
+            
+            updateScoreDisplay(0);
+            updateComboDisplay(false);
+
+            elements.controlBtn.innerHTML = '<i class="fas fa-stop"></i> 结束游戏';
+            elements.controlBtn.style.background = '#52c41a';
+            
+            if (gameMode === 'timed') {
+                startTimer();
+            }
+            
+            startRound();
+            showNotification(`游戏开始！模式：${elements.gameModeSelect.options[elements.gameModeSelect.selectedIndex].text}`, 'success');
+        }
+
+        function endGame() {
+            clearInterval(gameTimer);
+            isPlaying = false;
+            isRoundActive = false;
+            
+            elements.controlBtn.innerHTML = '<i class="fas fa-play"></i> 开始游戏';
+            elements.controlBtn.style.background = '#ff4d4f';
+            
+            const modeText = elements.gameModeSelect.options[elements.gameModeSelect.selectedIndex].text;
+            showNotification(`游戏结束！最终得分：${score} | 最高连击：x${maxCombo} | 模式：${modeText}`, 'info');
+            
+            currentWords = currentWords.map(word => ({...word, used: false}));
+            setupGame();
+        }
+        
+        // --- 游戏核心逻辑 ---
+        function loadExcelFile(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                    
+                    currentWords = jsonData.slice(1)
+                        .filter(row => row.length >= 3 && row[1] && row[2])
+                        .map(row => ({
+                            english: row[1].toString().trim(),
+                            chinese: row[2].toString().trim(),
+                            used: false,
+                        }));
+                    
+                    if (currentWords.length === 0) {
+                        showNotification('Excel文件中没有找到有效的单词数据！', 'error');
+                        return;
+                    }
+                    
+                    let calculatedTime = baseTime + (currentWords.length * timePerWord);
+                    initialTimeLeft = Math.min(calculatedTime, maxTime);
+                    timeLeft = initialTimeLeft;
+                    elements.timer.innerHTML = `<i class="fas fa-clock"></i> 剩余时间：${formatTime(timeLeft)}`;
+
+                    fileLoaded = true;
+                    setupGame();
+                    showNotification(`成功加载 ${currentWords.length} 个单词！`, 'success');
+                } catch (error) {
+                    showNotification('读取Excel文件失败：' + error.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function setupGame() {
+            elements.gameAreaWords.innerHTML = '';
+            const shuffled = [...currentWords].sort(() => Math.random() - 0.5);
+            shuffled.forEach(word => {
+                const btn = document.createElement('button');
+                btn.className = 'word-btn';
+                btn.textContent = word.english;
+                btn.dataset.chinese = word.chinese;
+                btn.onclick = () => handleWordClick(btn);
+                elements.gameAreaWords.appendChild(btn);
+            });
+            elements.currentPrompt.textContent = '等待游戏开始...';
+        }
+
+        function startRound() {
+            const availableWords = currentWords.filter(word => !word.used);
+            if (availableWords.length === 0) {
+                elements.currentPrompt.textContent = "恭喜！所有单词已完成！";
+                showNotification('恭喜！所有单词已完成！', 'success');
+                setTimeout(endGame, 2000);
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * availableWords.length);
+            currentWordData = availableWords[randomIndex];
+            currentPrompt = currentWordData.chinese;
+            elements.currentPrompt.textContent = currentPrompt;
+            
+            currentRoundAttempts = 0;
+            isRoundActive = true;
+        }
+
+        function handleWordClick(btn) {
+            if (!isPlaying || !isRoundActive || btn.disabled) return;
+            
+            const isCorrect = btn.dataset.chinese === currentPrompt;
+            
+            if (isCorrect) {
+                btn.classList.add('correct');
+                btn.disabled = true;
+                currentWordData.used = true;
+                
+                const points = 10 + (combo > 1 ? (combo - 1) * 5 : 0);
+                updateScoreDisplay(points);
+                updateComboDisplay(true);
+                showNotification(`答对了! +${points}分`, 'success');
+                
+                isRoundActive = false;
+                setTimeout(startRound, 1000);
+
+            } else {
+                updateComboDisplay(false);
+                let shouldEndRound = false;
+
+                switch (gameMode) {
+                    case 'timed':
+                        currentRoundAttempts++;
+                        updateScoreDisplay(-5);
+                        showNotification('选错了! -5分', 'error');
+                        if (currentRoundAttempts >= 2) shouldEndRound = true;
+                        break;
+                    
+                    case 'survival':
+                        lives--;
+                        updateLivesDisplay();
+                        showNotification('选错了! 失去一条生命', 'error');
+                        if (lives <= 0) {
+                            endGame();
+                            return;
+                        }
+                        shouldEndRound = true;
+                        break;
+
+                    case 'precision':
+                        shouldEndRound = true;
+                        break;
+                }
+                
+                btn.classList.add('wrong');
+
+                if (shouldEndRound) {
+                    isRoundActive = false;
+                    setTimeout(() => {
+                        // 找到正确的答案按钮并高亮
+                        const correctBtn = [...document.querySelectorAll('.word-btn')].find(b => b.dataset.chinese === currentPrompt);
+                        if (correctBtn) {
+                            correctBtn.classList.add('revealed-answer');
+                            correctBtn.disabled = true;
+                        }
+                        currentWordData.used = true;
+
+                        // **关键修改：移除错误按钮的红色标记**
+                        btn.classList.remove('wrong');
+                        
+                        setTimeout(() => {
+                           showNotification(`正确答案是: ${currentWordData.english}`, 'info');
+                        }, 500);
+
+                        setTimeout(startRound, 2500);
+                    }, 500);
+                } else {
+                    // 还有一次机会，移除错误效果
+                    setTimeout(() => btn.classList.remove('wrong'), 500);
+                }
+            }
+        }
+        
+        function startTimer() {
+            clearInterval(gameTimer);
+            elements.timer.innerHTML = `<i class="fas fa-clock"></i> 剩余时间：${formatTime(timeLeft)}`;
+            gameTimer = setInterval(() => {
+                timeLeft--;
+                elements.timer.innerHTML = `<i class="fas fa-clock"></i> 剩余时间：${formatTime(timeLeft)}`;
+                if (timeLeft <= 0) endGame();
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
